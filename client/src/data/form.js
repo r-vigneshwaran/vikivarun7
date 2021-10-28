@@ -2,59 +2,104 @@ export const formConfig = [
   {
     id: 1,
     type: 'text',
-    label: 'firstName',
+    label: 'First Name',
+    ipIndex: 'firstName',
     value: '',
-    placeholder: 'enterFirstName',
+    placeholder: 'Enter First Name',
     required: true
   },
   {
     id: 2,
     type: 'text',
-    label: 'middleName',
+    label: 'Middle Name',
+    ipIndex: 'middleName',
     value: '',
-    placeholder: 'enterMiddleName'
+    placeholder: 'Enter Middle Name'
   },
   {
     id: 3,
     type: 'text',
-    label: 'lastName',
+    label: 'Last Name',
+    ipIndex: 'lastName',
     value: '',
-    placeholder: 'enter Last Name',
+    placeholder: 'Enter Last Name',
     required: true
   },
   {
     id: 4,
     type: 'email',
-    label: 'email',
+    label: 'Email',
+    ipIndex: 'email',
     value: '',
-    placeholder: 'enter Email',
+    placeholder: 'Enter Email',
     required: true
   },
   {
     id: 5,
     type: 'select',
-    label: 'gender',
+    label: 'Gender',
+    ipIndex: 'gender',
     required: true,
     value: '',
     options: [
       { id: 1, value: 'MALE', label: 'male' },
+
       { id: 2, value: 'FEMALE', label: 'female' },
+
       { id: 3, value: 'THEY', label: 'they' }
     ]
   },
   {
     id: 6,
+    type: 'checkbox',
+    label: 'Location',
+    ipIndex: 'location',
+    required: true,
+    value: '',
+    options: [
+      { id: 1, value: 'CHENNAI', label: 'Chennai' },
+      { id: 2, value: 'MUMBAI', label: 'Mumbai' },
+      { id: 3, value: 'PUNE', label: 'Pune' }
+    ]
+  },
+  {
+    id: 7,
+    type: 'radio',
+    label: 'Degree',
+    ipIndex: 'Degree',
+    required: true,
+    value: '',
+    options: [
+      { id: 1, value: 'B.E', label: 'B.E' },
+      { id: 2, value: 'ARTS', label: 'Arts' },
+      { id: 3, value: 'OTHERs', label: 'Others' }
+    ]
+  },
+  {
+    id: 7,
     type: 'date',
-    label: 'dob',
+    label: 'Date Of Birth',
+    ipIndex: 'dateOfBirth',
     validation: 'dob',
     value: '',
     required: true,
     warningText: 'Date of Birth should not be greater than todays date'
   },
   {
-    id: 7,
+    id: 8,
     type: 'number',
-    label: 'mobileNumber',
+    label: 'Mobile Number',
+    ipIndex: 'mobile',
+    validation: 'mobile',
+    value: '',
+    required: true,
+    warningText: 'Please enter a valid mobile number'
+  },
+  {
+    id: 9,
+    type: 'textarea',
+    label: 'Description',
+    ipIndex: 'description',
     validation: 'mobile',
     value: '',
     required: true,

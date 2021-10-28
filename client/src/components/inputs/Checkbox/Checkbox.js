@@ -1,30 +1,22 @@
-import { useContext } from 'react';
 import { Form, Col } from '@themesberg/react-bootstrap';
-import { FormContext } from '../../Home';
 
-const FormCheckbox = ({ id, label, value, required, options }) => {
-  const { handleChange } = useContext(FormContext);
+const FormCheckbox = ({ id, label, options, type, ipIndex }) => {
   return (
     <Col key={id} className="mt-3">
-      <Form.Group controlId={label}>
-        <Form.Label> {label}</Form.Label>
-        {options.map((item) => (
-          <Form.Check
-            inline
-            label={item.label}
-            name="group1"
-            type="checkbox"
-            id={`checkbox-1`}
-            value={value}
-            onChange={(event) =>
-              console.log(
-                event.target.checked,
-                event.target.name,
-                event.target.value
-              )
-            }
-          />
-        ))}
+      <Form.Group controlId={`checkbox ${ipIndex}`} className="input-group">
+        <Form.Label>{label}</Form.Label>
+        <div className="options">
+          {options.map((item) => (
+            <Form.Check
+              key={item.id}
+              inline
+              label={item.label}
+              value={item.value}
+              name="radio-check"
+              type={type}
+            />
+          ))}
+        </div>
       </Form.Group>
     </Col>
   );

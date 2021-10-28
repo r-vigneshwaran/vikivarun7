@@ -6,22 +6,25 @@ import {
   onAuthStateChanged
 } from 'firebase/auth';
 import { auth, db } from './fire';
-import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
+import { setDoc, doc, getDoc } from 'firebase/firestore';
 import './app.css';
 import Login from './components/Login';
 import Home from './components/Home';
 import { signInWithPopup } from 'firebase/auth';
 import { GoogleAuthProvider } from 'firebase/auth';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser, setUserRole } from './actions';
 
 const provider = new GoogleAuthProvider();
+
 function App() {
-  const [user, setUser] = useState('');
+  const dispatch = useDispatch();
+  const userData = useSelector((state) => state.user);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [hasAccount, setHasAccount] = useState(false);
-  const [isAdmin, setisAdmin] = useState(false);
   const clearInputs = () => {
     setEmail('');
     setPassword('');
@@ -38,13 +41,9 @@ function App() {
     signInWithEmailAndPassword(auth, email, password)
       .then((cred) => {
         const docRef = doc(db, 'users', cred.user.uid);
-        getDoc(docRef).then((docSnap) => {
+        return getDoc(docRef).then((docSnap) => {
           if (docSnap.exists()) {
-            setisAdmin(docSnap.data().admin);
-            console.log('Document data:', docSnap.data());
-          } else {
-            // doc.data() will be undefined in this case
-            console.log('No such document!');
+            dispatch(setUserRole(docSnap.data().admin));
           }
         });
       })
@@ -75,7 +74,7 @@ function App() {
             admin: false
           };
           setDoc(data, document);
-          setisAdmin(false);
+          dispatch(setUserRole(false));
         };
         return writeDoc();
       })
@@ -97,7 +96,7 @@ function App() {
     signOut(auth)
       .then(() => {
         localStorage.removeItem('user');
-        window.location.reload();
+        dispatch(setUser(''));
       })
       .catch((err) => {
         console.log(err);
@@ -109,16 +108,17 @@ function App() {
       if (user) {
         clearInputs();
         localStorage.setItem('user', JSON.stringify(user));
-        setUser(user);
+        dispatch(setUser(user));
       } else {
-        setUser('');
         localStorage.removeItem('user');
+        dispatch(setUser(''));
       }
     });
   };
   useEffect(() => {
     authListener();
   }, []);
+  
   return (
     <div>
       {userDetails ? (

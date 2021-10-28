@@ -1,19 +1,12 @@
-import { useContext } from 'react';
+import React from 'react';
 import { Form, Col } from '@themesberg/react-bootstrap';
-import { FormContext } from '../../Home';
 
-const FormSelect = ({ id, label, value, required, options }) => {
-  const { handleChange } = useContext(FormContext);
+const FormSelect = ({ id, label, required, options, ipIndex }) => {
   return (
     <Col key={id} className="mt-3">
-      <Form.Group controlId={label}>
+      <Form.Group controlId={ipIndex} className="input-group">
         <Form.Label> {label}</Form.Label>
-        <Form.Control
-          as="select"
-          required={required}
-          onChange={(e) => handleChange(id, e.target.value)}
-          value={value}
-        >
+        <Form.Control as="select" required={required}>
           <option value="" hidden>
             Select One
           </option>

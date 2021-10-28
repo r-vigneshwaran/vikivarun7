@@ -39,7 +39,9 @@ const Login = ({
           />
           {passwordError && <p>{passwordError}</p>}
           <div className="btnContainer">
-            <button onClick={signIn}>Login</button>
+            <button className="btn-primary" onClick={signIn}>
+              Login
+            </button>
           </div>
         </div>
       ) : (
@@ -66,7 +68,9 @@ const Login = ({
           <div className="btnContainer">
             {hasAccount ? (
               <>
-                <button onClick={signIn}>Login</button>
+                <button className="btn-primary" onClick={signIn}>
+                  Login
+                </button>
                 <p>
                   Don't have an Account
                   <span onClick={() => setHasAccount(!hasAccount)}>
@@ -76,7 +80,9 @@ const Login = ({
               </>
             ) : (
               <>
-                <button onClick={signUp}>Register</button>
+                <button className="btn-primary" onClick={signUp}>
+                  Register
+                </button>
                 <p>
                   Already have an Account{' '}
                   <span onClick={() => setHasAccount(!hasAccount)}>

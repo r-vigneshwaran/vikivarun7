@@ -5,7 +5,7 @@
   font-family: 'Nunito', sans-serif;
 }
 
-button {
+.btn-primary-custom {
   border: none;
   outline: none;
   width: 100%;
@@ -16,7 +16,7 @@ button {
   background: #603bbb;
   cursor: pointer;
 }
-button.btn-google {
+.btn-primary-custom.btn-google {
   background: #ff3b5b;
 }
 .login {
@@ -117,18 +117,118 @@ button.btn-google {
   color: #fff;
 }
 
-.hero nav button {
+.hero nav .btn-primary-custom {
   width: 86px;
   padding: 8px 0;
   background: #3a2b58;
 }
-.center {
+.forms {
   width: 100%;
   height: 100vh;
   display: flex;
+  /* justify-content: center; */
+  align-items: center;
+  flex-direction: column;
+}
+
+table {
+  border-spacing: 0;
+  border: 1px solid black;
+}
+tr:last-child > td {
+  border-bottom: 0;
+}
+
+th,
+td {
+  margin: 0;
+  padding: 0.5rem;
+  border-bottom: 1px solid black;
+  border-right: 1px solid black;
+}
+th:last-childtd,
+td:last-child {
+  border-right: 0;
+}
+.pagination {
+  padding: 0.5rem;
+}
+.form-title {
+  display: flex;
+  flex-direction: column;
+}
+.tableContainer {
+  width: 80%;
+}
+.tools {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.pointer {
+  cursor: pointer;
+}
+h1,
+.route {
+  color: #fff;
+}
+.form {
+  width: 100%;
+  margin-top: 20px;
+}
+.form-side {
+  display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 }
-.title{
-  
+input[type='email'],
+input[type='text'],
+input[type='password'],
+input[type='date'],
+input[type='number'],
+select,
+textarea {
+  width: 300px;
+  height: 40px;
+  border-radius: 7px;
+  padding: 5px;
+}
+textarea {
+  height: 70px;
+}
+.input-group {
+  width: 500px;
+  justify-content: space-between;
+  display: flex;
+  margin-top: 10px;
+}
+.form-label,
+.form-check-label {
+  color: #fff;
+}
+.formBtnContainer {
+  width: 100%;
+  justify-content: space-between;
+  display: flex;
+  margin-top: 20px;
+}
+.options {
+  display: flex;
+  flex-direction: row;
+  width: 300px;
+  justify-content: space-around;
+}
+.form-check-input {
+  margin-right: 10px;
+}
+.imgContainer {
+  width: 80%;
+  height: 100%;
+}
+.banner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
