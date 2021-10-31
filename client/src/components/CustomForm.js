@@ -4,9 +4,19 @@ import FormInput from '../components/inputs/TextInput/TextInput';
 import FormSelect from '../components/inputs/Select/Select';
 import FormCheckbox from './inputs/Checkbox/Checkbox';
 import { Button } from 'antd';
-import emailjs from 'emailjs-com';
+import { db } from 'fire';
+import { useAuth } from 'AuthContext';
+import moment from 'moment';
+import {
+  collection,
+  doc,
+  getDocs,
+  setDoc,
+  updateDoc
+} from '@firebase/firestore';
 
-const CustomForm = ({ config, handleClickBack }) => {
+const CustomForm = ({ config, handleClickBack, formName }) => {
+  const { currentUser } = useAuth();
   const FormElement = useCallback(
     ({
       element: {
@@ -68,7 +78,7 @@ const CustomForm = ({ config, handleClickBack }) => {
     []
   );
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const data = {};
     Object.keys(e.target.elements).forEach((item) => {
@@ -86,7 +96,19 @@ const CustomForm = ({ config, handleClickBack }) => {
         }
       }
     });
-    console.log(data);
+    const newFinalData = {
+      [formName]: {
+        ...data,
+
+        submittedUser: currentUser.email,
+        date: moment().format('DD MM YYYY')
+      }
+    };
+    await setDoc(doc(db, 'admin@admin.com', 'forms'), newFinalData);
+
+    // console.log(newFinalData);
+    // const formRef = doc(db, 'admin@admin.com', 'forms');
+    // await updateDoc(formRef, newFinalData);
   };
   const handleReset = () => {
     document.getElementById('dynamic-form').reset();
@@ -95,8 +117,8 @@ const CustomForm = ({ config, handleClickBack }) => {
     <React.Fragment>
       <Form onSubmit={handleSubmit} id="dynamic-form">
         <Row className="row-cols-sm-3 row-cols-md-3 row-cols-lg-4">
-          {config.map((element) => (
-            <FormElement key={element.id} element={element} />
+          {config.map((element, index) => (
+            <FormElement key={index} element={element} />
           ))}
         </Row>
         <div className="formBtnContainer">

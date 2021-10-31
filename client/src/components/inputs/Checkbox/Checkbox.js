@@ -6,9 +6,9 @@ const FormCheckbox = ({ id, label, options, type, ipIndex }) => {
       <Form.Group controlId={`checkbox ${ipIndex}`} className="input-group">
         <Form.Label>{label}</Form.Label>
         <div className="options">
-          {options.map((item) => (
+          {options.map((item, index) => (
             <Form.Check
-              key={item.id}
+              key={index}
               inline
               label={item.label}
               value={item.value}
