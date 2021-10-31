@@ -6,7 +6,9 @@ export const formConfig = [
     ipIndex: 'firstName',
     value: '',
     placeholder: 'Enter First Name',
-    required: true
+    required: true,
+    isPrintable: true,
+    isPublic: true
   },
   {
     id: 2,
@@ -14,7 +16,9 @@ export const formConfig = [
     label: 'Middle Name',
     ipIndex: 'middleName',
     value: '',
-    placeholder: 'Enter Middle Name'
+    placeholder: 'Enter Middle Name',
+    isPrintable: true,
+    isPublic: true
   },
   {
     id: 3,
@@ -76,7 +80,7 @@ export const formConfig = [
     ]
   },
   {
-    id: 7,
+    id: 8,
     type: 'date',
     label: 'Date Of Birth',
     ipIndex: 'dateOfBirth',
@@ -86,7 +90,7 @@ export const formConfig = [
     warningText: 'Date of Birth should not be greater than todays date'
   },
   {
-    id: 8,
+    id: 9,
     type: 'number',
     label: 'Mobile Number',
     ipIndex: 'mobile',
@@ -96,7 +100,7 @@ export const formConfig = [
     warningText: 'Please enter a valid mobile number'
   },
   {
-    id: 9,
+    id: 10,
     type: 'textarea',
     label: 'Description',
     ipIndex: 'description',

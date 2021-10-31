@@ -1,5 +1,5 @@
 import 'antd/dist/antd.css';
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import { createStore, applyMiddleware } from 'redux';
@@ -16,7 +16,6 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const store = createStore(reducer, applyMiddleware(...middlewares));
-
 ReactDOM.render(
   <Provider store={store}>
     <App />
