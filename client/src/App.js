@@ -14,9 +14,9 @@ function App() {
       <AuthProvider>
         <Switch>
           <Route path="/authentication" component={Login} />
-          <PrivateRoute exact path="/" component={AdminDashboard} />
+          <PrivateRoute exact path="/" component={Home} />
           <PrivateRoute exact path="/form/:id" component={FormPage} />
-          {/* <PrivateRoute path="/admin/dashboard" component={AdminDashboard} /> */}
+          <AdminRoute path="/admin/dashboard" component={AdminDashboard} />
         </Switch>
       </AuthProvider>
     </Router>

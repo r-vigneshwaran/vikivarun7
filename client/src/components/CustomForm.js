@@ -7,15 +7,12 @@ import { Button } from 'antd';
 import { db } from 'fire';
 import { useAuth } from 'AuthContext';
 import moment from 'moment';
-import {
-  collection,
-  doc,
-  getDocs,
-  setDoc,
-  updateDoc
-} from '@firebase/firestore';
+import { doc, setDoc, updateDoc, getDoc } from '@firebase/firestore';
+import { useDispatch } from 'react-redux';
+import { setNotification } from 'actions';
 
 const CustomForm = ({ config, handleClickBack, formName }) => {
+  const dispatch = useDispatch();
   const { currentUser } = useAuth();
   const FormElement = useCallback(
     ({
@@ -57,6 +54,7 @@ const CustomForm = ({ config, handleClickBack, formName }) => {
               label={label}
               options={options}
               ipIndex={ipIndex}
+              required={required}
             />
           );
         case 'checkbox':
@@ -68,6 +66,7 @@ const CustomForm = ({ config, handleClickBack, formName }) => {
               label={label}
               options={options}
               ipIndex={ipIndex}
+              required={required}
             />
           );
 
@@ -96,23 +95,32 @@ const CustomForm = ({ config, handleClickBack, formName }) => {
         }
       }
     });
+    const adminRef = doc(db, 'admin@admin.com', 'feedback');
+    const res = await getDoc(adminRef);
     const newFinalData = {
-      [formName]: {
-        ...data,
-
-        submittedUser: currentUser.email,
-        date: moment().format('DD MM YYYY')
-      }
+      ...data,
+      submittedUser: currentUser.email,
+      date: moment().format('DD MM YYYY')
     };
-    await setDoc(doc(db, 'admin@admin.com', 'forms'), newFinalData);
-
-    // console.log(newFinalData);
-    // const formRef = doc(db, 'admin@admin.com', 'forms');
-    // await updateDoc(formRef, newFinalData);
+    let form = res.data();
+    if (formName in form) {
+      form[formName] = [...form[formName], newFinalData];
+    } else {
+      form[formName] = [newFinalData];
+    }
+    await setDoc(adminRef, form);
+    dispatch(
+      setNotification(true, 'Feedback uploaded successfully', 'Message')
+    );
+    handleClickBack();
+    const formRef = doc(db, 'admin@admin.com', 'forms');
+    await updateDoc(formRef, newFinalData);
   };
+
   const handleReset = () => {
     document.getElementById('dynamic-form').reset();
   };
+
   return (
     <React.Fragment>
       <Form onSubmit={handleSubmit} id="dynamic-form">

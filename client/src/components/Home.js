@@ -17,13 +17,13 @@ import {
   MailTwoTone,
   FormOutlined
 } from '@ant-design/icons';
-import { formConfig } from 'data/formConfig';
 import CustomForm from './CustomForm';
 import { jsPDF } from 'jspdf';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
 import { getForm } from 'actions';
 import { useDispatch, useSelector } from 'react-redux';
+import moment from 'moment';
 
 const { Option } = Select;
 
@@ -36,6 +36,7 @@ const Home = () => {
   const emailRef = useRef();
   const [options, setOptions] = useState([]);
   const [columnData, setcolumnData] = useState([]);
+  const [bannerImage, setBannerImage] = useState('');
   const [isShowTable, setIsShowTable] = useState(true);
   const { currentUser } = useAuth();
   const doc = new jsPDF();
@@ -73,9 +74,11 @@ const Home = () => {
       dispatch(getForm(currentUser.email));
     } else {
       const { forms } = userFormDetails;
-      setTableDate(forms);
+      setTableDate(
+        Object.values(forms).map((item, index) => ({ ...item, key: index + 1 }))
+      );
     }
-  }, [currentUser.email, userFormDetails]);
+  }, [currentUser, dispatch, userFormDetails]);
 
   const handleClickDownload = () => {
     doc.save('Test.pdf');
@@ -121,6 +124,11 @@ const Home = () => {
   }, []);
 
   const handleClickOpenForm = (text, record) => {
+    const today = moment().format('YYYY-MM-DD');
+    const validity = moment(record.validity).format('YYYY-MM-DD');
+    if (validity < today) return;
+    console.log(validity, today);
+    setBannerImage(record.imageUrl);
     const data = record.dyanmicFormData.map((item) => {
       if (item.options.length === 1) {
         return {
@@ -153,7 +161,6 @@ const Home = () => {
   const handleCloseForm = () => {
     setIsShowTable(!isShowTable);
   };
-  console.log(dynamicForm);
   const handleChangeFilter = (value) => {};
 
   const onSelectSearch = (data) => {};
@@ -172,7 +179,7 @@ const Home = () => {
       message: 'hello world'
     };
     const response = await axios.post('http://localhost:5000/sent-email', data);
-    // console.log(response);
+    console.log(response);
   };
   return (
     <div className="forms">
@@ -217,14 +224,16 @@ const Home = () => {
           {' '}
           <Row className="form">
             <Col span={12} className="banner">
-              <div className="imgContainer">
-                <Image
-                  preview={false}
-                  width="100%"
-                  height="100%"
-                  src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
-                />
-              </div>
+              {bannerImage && (
+                <div className="imgContainer">
+                  <Image
+                    preview={false}
+                    width="100%"
+                    height="100%"
+                    src={bannerImage}
+                  />
+                </div>
+              )}
             </Col>
             <Col span={12} className="form-side">
               <h1>Custom Dynamic Form</h1>

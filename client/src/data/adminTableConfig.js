@@ -4,35 +4,37 @@ import { Tag } from 'antd';
 export const adminColumns = [
   {
     title: 'Form Name',
-    dataIndex: 'name',
-    key: 'name',
+    dataIndex: 'formName',
+    key: 'formName',
     sorter: (a, b) => a.name.localeCompare(b.name)
   },
   {
     title: 'Form Created',
-    dataIndex: 'created',
-    key: 'created',
+    dataIndex: 'createdAt',
+    key: 'createdAt',
     sorter: (a, b) => moment(a.created).unix() - moment(b.created).unix()
   },
   {
     title: 'Banner',
-    dataIndex: 'banner',
-    key: 'banner',
-    render: (text) => (
+    dataIndex: 'imageUrl',
+    key: 'imageUrl',
+    render: (imageUrl) => (
       <>
-        <a href="#basic">View</a>
+        <a href={imageUrl} target="_blank" rel="noopener noreferrer">
+          View
+        </a>
       </>
     )
   },
   {
     title: 'Form Feilds',
-    dataIndex: 'feilds',
-    key: 'feilds',
+    dataIndex: 'dyanmicFormData',
+    key: 'dyanmicFormData',
     render: (tags) => (
       <>
         {tags.map((tag, index) => (
           <div key={index} className="flex-column">
-            <Tag key={tag}>{tag}</Tag>
+            <Tag key={tag.fieldName}>{tag.fieldName}</Tag>
           </div>
         ))}
       </>
@@ -40,8 +42,8 @@ export const adminColumns = [
   },
   {
     title: 'Accessible Mails',
-    dataIndex: 'accessiblemails',
-    key: 'accessiblemails',
+    dataIndex: 'accessibleUsers',
+    key: 'accessibleUsers',
     render: (mails) => (
       <>
         {mails.map((mail, index) => (

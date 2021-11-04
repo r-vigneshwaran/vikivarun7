@@ -9,11 +9,12 @@ import {
   signInWithPopup
 } from 'firebase/auth';
 import { notification } from 'antd';
-import { setForms, setNotification, setUser } from 'actions';
+import { setForms, setNotification, setUser, setUserRole } from 'actions';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { setLoading } from 'actions';
 import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 const AuthContext = createContext();
 
@@ -27,9 +28,9 @@ export function AuthProvider({ children }) {
 
   const { show, message, title } = useSelector((state) => state.notification);
   const loading = useSelector((state) => state.loading);
-  const { admin } = useSelector((state) => state.user);
 
   const [currentUser, setCurrentUser] = useState();
+  const [isAdmin, setIsAdmin] = useState();
 
   const batch = writeBatch(db);
 
@@ -37,9 +38,6 @@ export function AuthProvider({ children }) {
     notification.open({
       message: title,
       description: message,
-      onClick: () => {
-        console.log('Notification Clicked!');
-      },
       duration: 10,
       onClose: () => dispatch(setNotification(false, '', 'Notification'))
     });
@@ -77,9 +75,7 @@ export function AuthProvider({ children }) {
         getDocs(collection(db, email)).then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
             if (doc.id === 'forms') {
-              console.log('forms setted');
               dispatch(setForms(doc.data()));
-              console.log('users setted');
             } else if (doc.id === 'user-details') {
               dispatch(setUser(doc.data()));
             }
@@ -122,6 +118,17 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unSubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+      // if (user) {
+      //   user.getIdTokenResult().then((idTokenResult) => {
+      //     if (idTokenResult.claims.admin) {
+      //       setUserRole('Hi Admin');
+      //       setIsAdmin(true);
+      //     } else {
+      //       console.log('Hi Normal User');
+      //       setIsAdmin(false);
+      //     }
+      //   });
+      // }
       dispatch(setLoading(false)); // this line is saving the whole application and grinding my head for long time
     });
     return unSubscribe;
@@ -139,7 +146,7 @@ export function AuthProvider({ children }) {
     signIn,
     logOut,
     signInWithGoogle,
-    admin
+    isAdmin
   };
   return (
     <AuthContext.Provider value={value}>

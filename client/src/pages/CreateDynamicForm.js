@@ -7,10 +7,18 @@ import {
   Row,
   Select,
   InputNumber,
-  Button
+  Button,
+  Progress,
+  Image
 } from 'antd';
 import { MinusCircleTwoTone, PlusCircleTwoTone } from '@ant-design/icons';
-import { collection, doc, getDocs, updateDoc } from '@firebase/firestore';
+import {
+  collection,
+  doc,
+  getDocs,
+  updateDoc,
+  writeBatch
+} from '@firebase/firestore';
 import { db } from 'fire';
 import { setNotification } from 'actions';
 import { useDispatch } from 'react-redux';
@@ -22,18 +30,20 @@ import {
 } from 'firebase/storage';
 import moment from 'moment';
 
-const CreateDynamicForm = ({ onClickBack }) => {
+const CreateDynamicForm = ({ onClickBack, selectedFormData = {} }) => {
   const { Option } = Select;
   const { TextArea } = Input;
   const dispatch = useDispatch();
   const [formName, setFormName] = useState('');
+  const [progress, setProgress] = useState(0);
   const [formValidity, setFormValidity] = useState('');
   const [formStatus, setFormStatus] = useState('');
   const [accessibleUsers, setAccessibleUsers] = useState('');
-  // const [isInvalid, setIsInvalid] = useState(false);
   const [selectedFile, setSelectedFile] = useState('');
   const [fileName, setFileName] = useState('');
   const [userFormDetails, setuserFormDetails] = useState({});
+  const [image, setImage] = useState(null);
+  const [dynamicForm, setDynamicForm] = useState([]);
   const [data, setData] = useState([
     {
       id: 1,
@@ -46,6 +56,25 @@ const CreateDynamicForm = ({ onClickBack }) => {
       sortOrder: ''
     }
   ]);
+
+  useEffect(() => {
+    if (progress === 100) {
+      setInterval(() => {
+        setProgress(0);
+      }, 15000);
+    }
+  }, [progress]);
+
+  useEffect(() => {
+    if (selectedFormData) {
+      setFormName(selectedFormData.formName);
+      setFormValidity(selectedFormData.validity);
+      setFormStatus(selectedFormData.status);
+      setImage(selectedFormData.imageUrl);
+      setAccessibleUsers(selectedFormData.accessibleUsers.join(', '));
+      setData(selectedFormData.dyanmicFormData);
+    }
+  }, [selectedFormData]);
 
   const addField = () => {
     const newData = {
@@ -76,6 +105,7 @@ const CreateDynamicForm = ({ onClickBack }) => {
     newData[indexOf] = filtered;
     setData(newData);
   };
+
   const checkEmail = async (trimmedEmails = []) => {
     const emails = [];
     await Promise.all(
@@ -91,7 +121,7 @@ const CreateDynamicForm = ({ onClickBack }) => {
           );
           emails.push(false);
         } else {
-          querySnapshot.docs.map((item) => {
+          querySnapshot.docs.forEach((item) => {
             if (item.id === 'forms') {
               setuserFormDetails((prev) => ({ ...prev, [email]: item.data() }));
             }
@@ -104,52 +134,41 @@ const CreateDynamicForm = ({ onClickBack }) => {
   };
 
   const uploadForms = async (data) => {
+    const batch = writeBatch(db);
     Object.keys(userFormDetails).map(async (email) => {
-      const { forms = [] } = userFormDetails[email];
-      const newForm = [...forms, data];
-      const newCount = newForm.length;
-      const newFinalData = { formsCount: newCount, forms: newForm };
+      const { forms = {} } = userFormDetails[email];
+      forms[formName] = data;
+      const newFinalData = {
+        formsCount: Object.keys(forms).length,
+        forms: forms
+      };
       const formRef = doc(db, email, 'forms');
-      await updateDoc(formRef, newFinalData);
+      batch.update(formRef, newFinalData);
+      const adminFormRef = doc(db, 'admin@admin.com', 'forms');
+      batch.update(adminFormRef, newFinalData);
+      await batch.commit();
     });
   };
 
   const handleUploadImage = (file) => {
-    // await new Promise(
     return new Promise((resolve, reject) => {
       const storage = getStorage();
       const imageUid = `${formName}-${file.name}`;
       const storageRef = ref(storage, `images/${imageUid}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
-
-      // return new Promise(
       uploadTask.on(
         'state_changed',
         (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log('Upload is ' + progress + '% done');
-          switch (snapshot.state) {
-            case 'paused':
-              console.log('Upload is paused');
-              break;
-            case 'running':
-              console.log('Upload is running');
-              break;
-            default:
-              break;
-          }
+          setProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
         },
         (error) => {
           dispatch(setNotification(true, error, 'Error Uploading Image'));
         },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            resolve(downloadURL);
-          });
+        async () => {
+          const res = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve(res);
         }
       );
-      // );
     });
   };
 
@@ -159,6 +178,8 @@ const CreateDynamicForm = ({ onClickBack }) => {
       return dispatch(
         setNotification(true, 'Upload an banner', 'No Image Found')
       );
+    setProgress(10);
+    window.scrollTo(0, 0);
     const file = new FormData();
     if (selectedFile) {
       file.append('file', selectedFile);
@@ -172,17 +193,16 @@ const CreateDynamicForm = ({ onClickBack }) => {
       imageUrl: '',
       accessibleUsers: trimmedEmails,
       dyanmicFormData: data,
-      createdAt: moment(),
-      updatedAt: moment()
+      createdAt: moment().format('DD MM YYYY'),
+      updatedAt: moment().format('DD MM YYYY')
     };
+    const imageURL = await handleUploadImage(selectedFile);
+    finalData['imageUrl'] = imageURL;
     const response = await checkEmail(trimmedEmails);
     if (response) {
-      uploadForms(finalData);
+      await uploadForms(finalData);
+      dispatch(setNotification(true, 'Form Uploaded Successfully', 'Message'));
     }
-    handleUploadImage(selectedFile).then((res) => {
-      finalData['imageUrl'] = res;
-      console.log(res, 'Download URL');
-    });
   };
 
   function onChangeDate(date, dateString) {
@@ -192,13 +212,31 @@ const CreateDynamicForm = ({ onClickBack }) => {
   const onClickReset = () => {};
 
   const handleChangeUpload = (event) => {
-    setFileName(event.target.files[0].name);
-    setSelectedFile(event.target.files[0]);
-    console.log(event.target.files[0]);
+    const imageFile = event.target.files[0];
+    setFileName(imageFile.name);
+    setSelectedFile(imageFile);
+    setImage(URL.createObjectURL(imageFile));
   };
 
   return (
     <form onSubmit={onClickSubmit}>
+      {progress > 0 && (
+        <div>
+          <Progress
+            strokeColor={{
+              '0%': '#108ee9',
+              '100%': '#87d068'
+            }}
+            style={{
+              position: 'absolute',
+              left: `calc(50% - 250px)`,
+              top: '7.5%',
+              width: 500
+            }}
+            percent={progress}
+          />
+        </div>
+      )}
       <div className="flex-row between form-header">
         <div className="flex-row ip-group">
           <span>Form Name</span>
@@ -212,7 +250,13 @@ const CreateDynamicForm = ({ onClickBack }) => {
         </div>
         <div className="flex-row ip-group">
           <span>Validity</span>
-          <DatePicker onChange={onChangeDate} required style={{ width: 200 }} />
+          <input
+            type="datetime-local"
+            value={formValidity}
+            onChange={(e) => setFormValidity(e.target.value)}
+            required
+            style={{ width: 200, color: 'black' }}
+          />
         </div>
         <div className="flex-row ip-group">
           <span>Form Status</span>{' '}
@@ -244,16 +288,9 @@ const CreateDynamicForm = ({ onClickBack }) => {
                     accept=".jpg,.jpeg,.png,.pdf"
                     onChange={(e) => handleChangeUpload(e)}
                   />
-                  <div className="input-box p-1 ps-2">
-                    {fileName
-                      ? `Chosen File : ${fileName}`
-                      : 'Please Select a File'}
-                  </div>
-                  {/* <label htmlFor="doc" className="browse">
-                    {t('documents:browse')}
-                  </label> */}
                 </div>
               </div>
+              {image && <Image src={image} alt="preview image" />}
             </div>
           </div>
         </Col>
@@ -306,6 +343,7 @@ const CreateDynamicForm = ({ onClickBack }) => {
                   <td>
                     <Input
                       style={{ width: 200 }}
+                      value={fieldName}
                       placeholder="enter field type"
                       required
                       onChange={(event) =>
@@ -317,6 +355,7 @@ const CreateDynamicForm = ({ onClickBack }) => {
                     <Select
                       name="fieldType"
                       style={{ width: 150 }}
+                      value={fieldType}
                       required
                       onChange={(value) =>
                         handleChangeForm(id, 'fieldType', value)
@@ -329,12 +368,15 @@ const CreateDynamicForm = ({ onClickBack }) => {
                       <Option value="radio">Radio</Option>
                       <Option value="checkbox">Checkbox</Option>
                       <Option value="multiselect">MultiSelect</Option>
+                      <Option value="number">Number</Option>
+                      <Option value="email">Email</Option>
+                      <Option value="password">Password</Option>
                     </Select>
                   </td>
                   <td>
                     <TextArea
                       name="options"
-                      required
+                      value={options.length ? options.join(', ') : ''}
                       onChange={(event) =>
                         handleChangeForm(
                           id,
@@ -349,6 +391,8 @@ const CreateDynamicForm = ({ onClickBack }) => {
                   </td>
                   <td>
                     <Checkbox
+                      checked={isRequired}
+                      value={isRequired}
                       onChange={(event) =>
                         handleChangeForm(id, 'isRequired', event.target.checked)
                       }
@@ -356,6 +400,8 @@ const CreateDynamicForm = ({ onClickBack }) => {
                   </td>
                   <td>
                     <Checkbox
+                      checked={isPublic}
+                      value={isPublic}
                       onChange={(event) =>
                         handleChangeForm(id, 'isPublic', event.target.checked)
                       }
@@ -363,6 +409,8 @@ const CreateDynamicForm = ({ onClickBack }) => {
                   </td>
                   <td>
                     <Checkbox
+                      checked={isPrintable}
+                      value={isPrintable}
                       onChange={(event) =>
                         handleChangeForm(
                           id,
@@ -378,6 +426,7 @@ const CreateDynamicForm = ({ onClickBack }) => {
                       min={1}
                       max={10}
                       required
+                      value={parseInt(sortOrder)}
                       onChange={(value) =>
                         handleChangeForm(id, 'sortOrder', value)
                       }

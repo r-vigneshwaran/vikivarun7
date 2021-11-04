@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from 'AuthContext';
 import { AutoComplete, Select, Table, Space } from 'antd';
 import { adminColumns, adminDataSource } from 'data/adminTableConfig';
 import { FormOutlined, DeleteFilled, TableOutlined } from '@ant-design/icons';
 import CreateDynamicForm from './CreateDynamicForm';
-import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { getForm, setFormFeedback } from 'actions';
+import { useHistory } from 'react-router';
 
 const { Option } = Select;
 
 const AdminDashboard = () => {
-  const { currentUser, logOut } = useAuth();
+  const dispatch = useDispatch();
+  const history = useHistory();
+  const formsList = useSelector((state) => state.userFormData);
   const [options, setOptions] = useState([]);
   const [columnData, setcolumnData] = useState([]);
+  const [tableData, setTableData] = useState([]);
+  const [selectedFormData, setSelectedFormData] = useState({});
   const [isShowTable, setIsShowTable] = useState(true);
-  const handleChangeFilter = (value) => {
-    console.log(`selected ${value}`);
-  };
+  const handleChangeFilter = (value) => {};
 
   useEffect(() => {
     if (!options.length) {
@@ -23,6 +27,22 @@ const AdminDashboard = () => {
       setOptions(data);
     }
   }, [options]);
+
+  useEffect(() => {
+    if (!formsList) {
+      dispatch(getForm('admin@admin.com'));
+    } else {
+      const data = Object.keys(formsList.forms).map((item, index) => ({
+        ...formsList.forms[item],
+        key: index + 1
+      }));
+      setTableData(data);
+    }
+  }, [dispatch, formsList]);
+
+  const setFormDetails = (record) => {
+    dispatch(setFormFeedback(record, history));
+  };
 
   useEffect(() => {
     setcolumnData(
@@ -38,9 +58,9 @@ const AdminDashboard = () => {
               >
                 <FormOutlined />
               </span>
-              <Link to={`/form/${record.id}`} className="pointer">
+              <div onClick={() => setFormDetails(record)} className="pointer">
                 <TableOutlined />
-              </Link>
+              </div>
               <span className="pointer">
                 <DeleteFilled />
               </span>
@@ -51,18 +71,18 @@ const AdminDashboard = () => {
       ],
       'column'
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleClickOpenForm = (text, record) => {
     setIsShowTable(!isShowTable);
+    setSelectedFormData(record);
   };
 
   const filter = (inputValue, option) =>
     option?.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1;
 
-  const onSelectSearch = (data) => {
-    console.log('onSelect', data);
-  };
+  const onSelectSearch = (data) => {};
 
   return (
     <div className="forms">
@@ -94,15 +114,20 @@ const AdminDashboard = () => {
               />
             </div>
           </div>
-          <Table
-            dataSource={adminDataSource}
-            columns={columnData}
-            scroll={{ y: 1000 }}
-          />
+          {tableData.length > 0 && (
+            <Table
+              dataSource={tableData}
+              columns={columnData}
+              scroll={{ y: 1000 }}
+            />
+          )}
         </div>
       ) : (
         <div className="tableContainer">
-          <CreateDynamicForm onClickBack={handleClickOpenForm} />
+          <CreateDynamicForm
+            selectedFormData={selectedFormData}
+            onClickBack={handleClickOpenForm}
+          />
         </div>
       )}
     </div>
