@@ -11,9 +11,11 @@ import { formDataSource, formColumn } from 'data/submissionFormConfig';
 import axios from 'axios';
 import { setNotification } from 'actions';
 import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 const FormPage = () => {
   const doc = new jsPDF();
+  const FormFeedbackData = useSelector((state) => state.FormFeedbackData);
   const dispatch = useDispatch();
   const emailRef = useRef();
   const [columnData, setColumnData] = useState([]);
@@ -27,9 +29,9 @@ const FormPage = () => {
   }, [emailRef]);
 
   useEffect(() => {
-    setColumnData(
-      [
-        ...formColumn,
+    if (FormFeedbackData) {
+      setColumnData([
+        ...FormFeedbackData.config,
         {
           title: 'Actions',
           render: (text, record) => (
@@ -61,9 +63,8 @@ const FormPage = () => {
           ),
           key: 'address'
         }
-      ],
-      'column'
-    );
+      ]);
+    }
   }, []);
   const handleClickDownload = () => {
     doc.save('Test.pdf');
@@ -85,13 +86,15 @@ const FormPage = () => {
   }
   return (
     <div className="forms">
-      <div className="tableContainer form">
-        <Table
-          dataSource={formDataSource}
-          columns={columnData}
-          scroll={{ y: 1000 }}
-        />
-      </div>
+      {FormFeedbackData && (
+        <div className="tableContainer form">
+          <Table
+            dataSource={FormFeedbackData.data}
+            columns={columnData}
+            scroll={{ y: 1000 }}
+          />
+        </div>
+      )}
     </div>
   );
 };

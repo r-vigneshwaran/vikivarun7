@@ -1,5 +1,6 @@
+import { getAuth } from '@firebase/auth';
 import { useAuth } from 'AuthContext';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Route, Redirect } from 'react-router-dom';
 
 export function PrivateRoute({ component: Component, ...rest }) {
@@ -24,18 +25,34 @@ export function PrivateRoute({ component: Component, ...rest }) {
   );
 }
 export function AdminRoute({ component: Component, ...rest }) {
-  const { currentUser, admin } = useAuth();
-  console.log(admin);
-  return (
-    <Route
-      {...rest}
-      render={(props) => {
-        return currentUser && admin ? (
-          <Component {...props} />
-        ) : (
-          <Redirect to="/" />
-        );
-      }}
-    ></Route>
-  );
+  const { currentUser } = useAuth();
+  const [loader, setLoader] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    getUserRole();
+  }, []);
+
+  async function getUserRole() {
+    const res = await getAuth().currentUser.getIdTokenResult();
+    setIsAdmin(res.claims.admin);
+    setLoader(false);
+  }
+
+  if (!loader) {
+    return (
+      <Route
+        {...rest}
+        render={(props) => {
+          return currentUser && isAdmin ? (
+            <Component {...props} />
+          ) : (
+            <Redirect to="/" />
+          );
+        }}
+      ></Route>
+    );
+  } else {
+    return <>Loading</>;
+  }
 }

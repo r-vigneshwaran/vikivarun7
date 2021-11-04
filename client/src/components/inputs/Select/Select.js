@@ -11,9 +11,9 @@ const FormSelect = ({ id, label, required, options, ipIndex }) => {
             Select One
           </option>
           {options.length > 0 &&
-            options.map(({ id, value, label }, index) => (
+            options.map((value, index) => (
               <option key={index} value={value}>
-                {label}
+                {value}
               </option>
             ))}
         </Form.Control>
