@@ -1,8 +1,10 @@
-import { doc, getDoc } from '@firebase/firestore';
+import { doc, getDoc, deleteDoc } from '@firebase/firestore';
 import { Col, Row } from 'antd';
 import { db } from 'fire';
 import { actionTypes } from '../constants';
 import axios from 'axios';
+import emailjs from 'emailjs-com';
+import { mapKeyToArray } from 'utility';
 const {
   SET_USER_DATA,
   SET_USER_ROLE,
@@ -10,7 +12,8 @@ const {
   SET_LOADING,
   SET_FORMS,
   SET_FORM_DATA,
-  SET_FORM_FEEDBACK
+  SET_FORM_FEEDBACK,
+  SET_NO_FORM_AVAILABLE
 } = actionTypes;
 
 export const setUser = (payload) => ({ type: SET_USER_DATA, payload });
@@ -30,15 +33,32 @@ export const setNotification = (show, message, title) => ({
   }
 });
 
-export const getForm = (email) => async (dispatch) => {
-  const docRef = doc(db, `${email}/forms`);
-  const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) {
-    dispatch({ type: SET_FORM_DATA, payload: docSnap.data() });
-  } else {
-  }
-};
+export const getForm =
+  (email, admin = false) =>
+  async (dispatch) => {
+    const docRef = doc(db, `admin@admin.com/forms`);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      if (admin) {
+        const forms = mapKeyToArray(docSnap.data().forms);
+        dispatch({
+          type: SET_FORM_DATA,
+          payload: forms
+        });
+      } else {
+        const res = [];
+        const forms = mapKeyToArray(docSnap.data().forms);
+        forms.forEach((key) => {
+          if (key.accessibleUsers.includes(email)) res.push(key);
+        });
+        dispatch({ type: SET_FORM_DATA, payload: res });
+        if (docSnap.data().forms.length === 0) {
+          dispatch({ type: SET_NO_FORM_AVAILABLE, payload: true });
+        }
+      }
+    } else {
+    }
+  };
 
 export const setFormFeedback = (record, history) => async (dispatch) => {
   const adminFeedbackRef = doc(db, 'admin@admin.com', 'feedback');
@@ -87,4 +107,45 @@ export const setAdmin = (uid) => async (dispatch) => {
     .catch((error) => {
       console.log(error);
     });
+};
+export const sendMail = (from, to, record) => async (dispatch) => {
+  const templateParams = {
+    to_name: to.split('@')[0],
+    from_name: from.split('@')[0],
+    message: JSON.stringify(record, null, 10),
+    to_address: to
+  };
+  emailjs
+    .send(
+      'service_bqtmt23',
+      'template_2s90qms',
+      templateParams,
+      'user_ULq5jdtayYaWPj34ZQVUc'
+    )
+    .then(
+      function (response) {
+        dispatch({
+          type: SET_NOTIFICATION,
+          payload: {
+            show: true,
+            message: `Email Send Successfully to ${to}`,
+            title: 'Success'
+          }
+        });
+      },
+      function (error) {
+        dispatch({
+          type: SET_NOTIFICATION,
+          payload: {
+            show: true,
+            message: `Email not send to ${to} `,
+            title: 'Failure'
+          }
+        });
+      }
+    );
+};
+const deleteForm = (col, doc) => async (dispatch) => {
+  const docRef = doc(db, col, doc);
+  await deleteDoc(docRef);
 };

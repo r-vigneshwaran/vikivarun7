@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
     notification.open({
       message: title,
       description: message,
-      duration: 10,
+      duration: 5,
       onClose: () => dispatch(setNotification(false, '', 'Notification'))
     });
   };
@@ -116,19 +116,18 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    const unSubscribe = onAuthStateChanged(auth, (user) => {
+    const unSubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
-      // if (user) {
-      //   user.getIdTokenResult().then((idTokenResult) => {
-      //     if (idTokenResult.claims.admin) {
-      //       setUserRole('Hi Admin');
-      //       setIsAdmin(true);
-      //     } else {
-      //       console.log('Hi Normal User');
-      //       setIsAdmin(false);
-      //     }
-      //   });
-      // }
+      if (user) {
+        const idTokenResult = await user.getIdTokenResult();
+        if (idTokenResult.claims.admin) {
+          console.log('Hi Admin');
+          setIsAdmin(true);
+        } else {
+          console.log('Hi Normal User');
+          setIsAdmin(false);
+        }
+      }
       dispatch(setLoading(false)); // this line is saving the whole application and grinding my head for long time
     });
     return unSubscribe;
@@ -139,6 +138,17 @@ export function AuthProvider({ children }) {
       openNotification(title, message);
     }
   }, [message, show, title]);
+
+  // useEffect(() => {
+  //   if (currentUser) {
+  //     getUserRole();
+  //   }
+  // }, [currentUser]);
+
+  // async function getUserRole() {
+  //   const res = await getAuth().currentUser.getIdTokenResult();
+  //   setIsAdmin(res.claims.admin);
+  // }
 
   const value = {
     currentUser,

@@ -90,6 +90,11 @@ const FormPage = () => {
         <div className="tableContainer form">
           <Table
             dataSource={FormFeedbackData.data}
+            pagination={{
+              defaultPageSize: 5,
+              showSizeChanger: true,
+              pageSizeOptions: ['5', '10', '15']
+            }}
             columns={columnData}
             scroll={{ y: 1000 }}
           />

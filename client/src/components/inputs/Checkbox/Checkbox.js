@@ -10,9 +10,8 @@ const FormCheckbox = ({ id, label, options, type, ipIndex }) => {
             <Form.Check
               key={index}
               inline
-              label={item.label}
-              value={item.value}
-              name="radio-check"
+              label={item}
+              value={item}
               type={type}
             />
           ))}

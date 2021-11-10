@@ -6,29 +6,31 @@ import {
   Col,
   AutoComplete,
   Popconfirm,
-  message,
   Image,
   Select,
-  Table
+  Table,
+  Divider
 } from 'antd';
 import {
   FilePdfTwoTone,
   PrinterTwoTone,
   MailTwoTone,
-  FormOutlined
+  FormOutlined,
+  UserSwitchOutlined
 } from '@ant-design/icons';
 import CustomForm from './CustomForm';
 import { jsPDF } from 'jspdf';
-import axios from 'axios';
 import { useAuth } from 'AuthContext';
-import { getForm } from 'actions';
+import { getForm, sendMail, setNotification } from 'actions';
 import { useDispatch, useSelector } from 'react-redux';
+import { mapKeyToArray } from 'utility';
 import moment from 'moment';
 
 const { Option } = Select;
 
 const Home = () => {
   const dispatch = useDispatch();
+  const noFormAvailable = useSelector((state) => state.noFormAvailable);
   const [tableData, setTableDate] = useState([]);
   const [formName, setFormName] = useState('');
   const [dynamicForm, setDynamicForm] = useState([]);
@@ -37,52 +39,45 @@ const Home = () => {
   const [options, setOptions] = useState([]);
   const [columnData, setcolumnData] = useState([]);
   const [bannerImage, setBannerImage] = useState('');
+  const [initialTableData, setInitialTableData] = useState([]);
+  const [rowSize, setRowSize] = useState(5);
   const [isShowTable, setIsShowTable] = useState(true);
-  const { currentUser } = useAuth();
-  const doc = new jsPDF();
-  var employees = [
-    { firstName: 'John', lastName: 'Doe' },
-    { firstName: 'Anna', lastName: 'Smith' },
-    { firstName: 'Peter', lastName: 'Jones' }
-  ];
-  employees.forEach(function (employee, i) {
-    doc.text(
-      20,
-      10 + i * 10,
-      'First Name: ' + employee.firstName + 'Last Name: ' + employee.lastName
-    );
-  });
+  const { currentUser, isAdmin } = useAuth();
 
   useEffect(() => {
-    if (!options.length) {
-      // for autocomplete feature
-      const data = dataSource.map((item) => ({ value: item.name }));
+    if (tableData.length) {
+      const data = tableData.map((item) => ({ value: item.formName }));
       setOptions(data);
     }
-  }, [options.length]);
+  }, [tableData]);
 
   const RenderEmail = useCallback(() => {
     return (
       <div>
-        <input type="text" ref={emailRef} />
+        <input
+          type="text"
+          ref={emailRef}
+          placeholder="Enter recipient email Address"
+        />
       </div>
     );
   }, [emailRef]);
 
   useEffect(() => {
     if (!userFormDetails) {
-      dispatch(getForm(currentUser.email));
+      dispatch(getForm(currentUser.email, isAdmin));
     } else {
-      const { forms } = userFormDetails;
-      setTableDate(
-        Object.values(forms).map((item, index) => ({ ...item, key: index + 1 }))
-      );
+      setInitialTableData(userFormDetails);
+      setTableDate(userFormDetails);
     }
-  }, [currentUser, dispatch, userFormDetails]);
+  }, [dispatch, userFormDetails]);
 
-  const handleClickDownload = () => {
-    doc.save('Test.pdf');
+  const handleClickDownload = (record) => {
+    var doc = new jsPDF('p', 'pt');
+    doc.text(20, 20, JSON.stringify(record, null, 2));
+    doc.save(`${record.formName}.pdf`);
   };
+
   useEffect(() => {
     setcolumnData(
       [
@@ -97,7 +92,10 @@ const Home = () => {
               >
                 <FormOutlined />
               </span>
-              <span className="pointer" onClick={handleClickDownload}>
+              <span
+                className="pointer"
+                onClick={() => handleClickDownload(record)}
+              >
                 <FilePdfTwoTone />
               </span>
               <span className="pointer">
@@ -106,7 +104,7 @@ const Home = () => {
               <Popconfirm
                 placement="topLeft"
                 title={RenderEmail()}
-                onConfirm={confirm}
+                onConfirm={() => confirm(record)}
                 icon={<></>}
                 okText="Yes"
                 cancelText="No"
@@ -126,8 +124,12 @@ const Home = () => {
   const handleClickOpenForm = (text, record) => {
     const today = moment().format('YYYY-MM-DD');
     const validity = moment(record.validity).format('YYYY-MM-DD');
-    if (validity < today) return;
-    console.log(validity, today);
+    if (validity < today)
+      return dispatch(setNotification(true, 'Form Expired', 'Message'));
+    if (record.status === 'inactive')
+      return dispatch(
+        setNotification(true, 'Form is not temporarily active', 'Message')
+      );
     setBannerImage(record.imageUrl);
     const data = record.dyanmicFormData.map((item) => {
       if (item.options.length === 1) {
@@ -152,101 +154,136 @@ const Home = () => {
           isPrintable: item.isPrintable,
           isPublic: item.isPublic
         };
+      } else if (item.options.length === 0) {
+        return {
+          type: item.fieldType,
+          label: item.fieldName,
+          ipIndex: item.fieldName,
+          value: '',
+          placeholder: '',
+          required: item.isRequired,
+          isPrintable: item.isPrintable,
+          isPublic: item.isPublic
+        };
       }
     });
     setDynamicForm(data);
     setFormName(record.formName);
     setIsShowTable(!isShowTable);
   };
+
   const handleCloseForm = () => {
     setIsShowTable(!isShowTable);
   };
-  const handleChangeFilter = (value) => {};
 
-  const onSelectSearch = (data) => {};
+  const handleChangeFilter = (value) => {
+    setRowSize(parseInt(value));
+  };
 
   const filter = (inputValue, option) =>
     option?.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1;
 
-  function confirm() {
-    message.info(emailRef.current.value);
-    sentEmail(emailRef.current.value);
+  function confirm(record) {
+    dispatch(sendMail(currentUser.email, emailRef.current.value, record));
   }
-  const sentEmail = async (toAddress) => {
-    const data = {
-      to: toAddress,
-      subject: 'New Email',
-      message: 'hello world'
-    };
-    const response = await axios.post('http://localhost:5000/sent-email', data);
-    console.log(response);
+
+  const onChangeFilter = (value) => {
+    if (value) {
+      setTableDate(
+        tableData.filter((person) =>
+          person.formName.toLowerCase().includes(value.toLowerCase())
+        )
+      );
+    } else {
+      setTableDate(initialTableData);
+    }
   };
+
   return (
     <div className="forms">
-      <div className="form-title">
-        <h1>Available Forms</h1>
-        <span className="route">Home &gt; Forms</span>
-      </div>
-      {isShowTable ? (
-        <div className="tableContainer">
-          <div className="tools">
-            <div className="filter">
-              <Select
-                defaultValue="lucy"
-                style={{ width: 120 }}
-                onChange={handleChangeFilter}
-              >
-                <Option value="5">5 Results</Option>
-                <Option value="10">10 Results</Option>
-                <Option value="15">15 Results</Option>
-              </Select>
-            </div>
-            <div className="search">
-              <AutoComplete
-                options={options}
-                style={{ width: 200 }}
-                onSelect={onSelectSearch}
-                placeholder="input here"
-                filterOption={filter}
-              />
-            </div>
+      {noFormAvailable ? (
+        <div>
+          {' '}
+          <div className="form-title">
+            <h1>No Form is Alloted for you</h1>
           </div>
-          {tableData.length > 0 && (
-            <Table
-              dataSource={tableData}
-              columns={columnData}
-              scroll={{ y: 1000 }}
-            />
-          )}
         </div>
       ) : (
-        <>
-          {' '}
-          <Row className="form">
-            <Col span={12} className="banner">
-              {bannerImage && (
-                <div className="imgContainer">
-                  <Image
-                    preview={false}
-                    width="100%"
-                    height="100%"
-                    src={bannerImage}
+        <React.Fragment>
+          <div className="form-title">
+            <h1>Available Forms</h1>
+            <span className="route">Home &gt; Forms</span>
+          </div>
+          <Divider plain orientation="right">
+            {isAdmin && (
+              <span className="switch">
+                <UserSwitchOutlined /> Switch to Admin
+              </span>
+            )}
+          </Divider>
+          {isShowTable ? (
+            <div className="tableContainer">
+              <div className="tools">
+                <div className="filter">
+                  <Select
+                    defaultValue="5"
+                    style={{ width: 120 }}
+                    onChange={handleChangeFilter}
+                  >
+                    <Option value="5">5 Results</Option>
+                    <Option value="10">10 Results</Option>
+                    <Option value="15">15 Results</Option>
+                  </Select>
+                </div>
+                <div className="search">
+                  <AutoComplete
+                    options={options}
+                    style={{ width: 200 }}
+                    onChange={onChangeFilter}
+                    placeholder="input here"
+                    filterOption={filter}
                   />
                 </div>
-              )}
-            </Col>
-            <Col span={12} className="form-side">
-              <h1>Custom Dynamic Form</h1>
-              {dynamicForm.length > 0 && (
-                <CustomForm
-                  config={dynamicForm}
-                  formName={formName}
-                  handleClickBack={handleCloseForm}
+              </div>
+              {tableData.length > 0 && (
+                <Table
+                  dataSource={tableData}
+                  pagination={{ pageSize: rowSize }}
+                  bordered
+                  columns={columnData}
                 />
               )}
-            </Col>
-          </Row>
-        </>
+            </div>
+          ) : (
+            <>
+              {' '}
+              <Row className="form">
+                <Col span={12} className="banner">
+                  {bannerImage && (
+                    <div className="imgContainer">
+                      <Image
+                        preview={false}
+                        width="100%"
+                        height="100%"
+                        src={bannerImage}
+                      />
+                    </div>
+                  )}
+                </Col>
+                <Col span={12} className="form-side">
+                  <h1>{formName && formName}</h1>
+                  {dynamicForm.length > 0 && (
+                    <CustomForm
+                      config={dynamicForm}
+                      formName={formName}
+                      handleClickBack={handleCloseForm}
+                    />
+                  )}
+                </Col>
+              </Row>
+            </>
+          )}
+        </React.Fragment>
       )}
     </div>
   );

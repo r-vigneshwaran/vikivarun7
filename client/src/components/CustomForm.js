@@ -10,6 +10,7 @@ import moment from 'moment';
 import { doc, setDoc, updateDoc, getDoc } from '@firebase/firestore';
 import { useDispatch } from 'react-redux';
 import { setNotification } from 'actions';
+import FormMultiSelect from './inputs/Select/MultiSelect';
 
 const CustomForm = ({ config, handleClickBack, formName }) => {
   const dispatch = useDispatch();
@@ -50,6 +51,16 @@ const CustomForm = ({ config, handleClickBack, formName }) => {
         case 'select':
           return (
             <FormSelect
+              id={id}
+              label={label}
+              options={options}
+              ipIndex={ipIndex}
+              required={required}
+            />
+          );
+        case 'multi-select':
+          return (
+            <FormMultiSelect
               id={id}
               label={label}
               options={options}
@@ -108,13 +119,12 @@ const CustomForm = ({ config, handleClickBack, formName }) => {
     } else {
       form[formName] = [newFinalData];
     }
-    await setDoc(adminRef, form);
-    dispatch(
-      setNotification(true, 'Feedback uploaded successfully', 'Message')
-    );
-    handleClickBack();
-    const formRef = doc(db, 'admin@admin.com', 'forms');
-    await updateDoc(formRef, newFinalData);
+    console.log(newFinalData);
+    // await setDoc(adminRef, form);
+    // dispatch(
+    //   setNotification(true, 'Feedback uploaded successfully', 'Message')
+    // );
+    // handleClickBack();
   };
 
   const handleReset = () => {

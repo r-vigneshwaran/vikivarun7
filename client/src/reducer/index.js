@@ -7,7 +7,8 @@ const {
   SET_NOTIFICATION,
   SET_FORMS,
   SET_FORM_DATA,
-  SET_FORM_FEEDBACK
+  SET_FORM_FEEDBACK,
+  SET_NO_FORM_AVAILABLE
 } = actionTypes;
 
 const initialState = {
@@ -21,7 +22,8 @@ const initialState = {
     title: 'Notification'
   },
   userFormData: null,
-  FormFeedbackData: null
+  FormFeedbackData: null,
+  noFormAvailable: false
 };
 
 export default function friends(state = initialState, { type, payload }) {
@@ -38,6 +40,8 @@ export default function friends(state = initialState, { type, payload }) {
       return { ...state, userFormData: payload };
     case SET_FORM_FEEDBACK:
       return { ...state, FormFeedbackData: payload };
+    case SET_NO_FORM_AVAILABLE:
+      return { ...state, noFormAvailable: payload };
     case SET_NOTIFICATION:
       return {
         ...state,

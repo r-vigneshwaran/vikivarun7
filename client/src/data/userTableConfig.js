@@ -39,18 +39,18 @@ export const columns = [
     dataIndex: 'formName',
     key: 'formName',
     ellipsis: true,
-    sorter: (a, b) => a.name.localeCompare(b.name)
+    sorter: (a, b) => a.formName.localeCompare(b.formName)
   },
   {
     title: 'Form Created',
     dataIndex: 'createdAt',
     key: 'createdAt',
-    sorter: (a, b) => moment(a.created).unix() - moment(b.created).unix()
+    sorter: (a, b) => moment(a.createdAt).unix() - moment(b.createdAt).unix()
   },
   {
     title: 'Form Last Updated',
     dataIndex: 'updatedAt',
     key: 'updatedAt',
-    sorter: (a, b) => moment(a.updated).unix() - moment(b.updated).unix()
+    sorter: (a, b) => moment(a.updatedAt).unix() - moment(b.updatedAt).unix()
   }
 ];

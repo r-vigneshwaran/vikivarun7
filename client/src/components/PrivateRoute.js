@@ -12,7 +12,7 @@ export function PrivateRoute({ component: Component, ...rest }) {
         return currentUser ? (
           <section className="hero">
             <nav>
-              <h2>Welcome {currentUser.email}</h2>
+              <h2>Welcome {currentUser.email.split('@')[0]}</h2>
               <button onClick={logOut}>Logout</button>
             </nav>
             <Component {...props} />
@@ -25,34 +25,24 @@ export function PrivateRoute({ component: Component, ...rest }) {
   );
 }
 export function AdminRoute({ component: Component, ...rest }) {
-  const { currentUser } = useAuth();
-  const [loader, setLoader] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    getUserRole();
-  }, []);
-
-  async function getUserRole() {
-    const res = await getAuth().currentUser.getIdTokenResult();
-    setIsAdmin(res.claims.admin);
-    setLoader(false);
-  }
-
-  if (!loader) {
-    return (
-      <Route
-        {...rest}
-        render={(props) => {
-          return currentUser && isAdmin ? (
+  const { currentUser, logOut, isAdmin } = useAuth();
+  return (
+    <Route
+      {...rest}
+      render={(props) => {
+        return currentUser && isAdmin ? (
+          <section className="hero">
+            <nav>
+              <h2>Welcome {currentUser.email.split('@')[0]}</h2>
+              <button>Admin Dashboard</button>
+              <button onClick={logOut}>Logout</button>
+            </nav>
             <Component {...props} />
-          ) : (
-            <Redirect to="/" />
-          );
-        }}
-      ></Route>
-    );
-  } else {
-    return <>Loading</>;
-  }
+          </section>
+        ) : (
+          <Redirect to="/" />
+        );
+      }}
+    ></Route>
+  );
 }

@@ -12,7 +12,7 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [hasAccount, setHasAccount] = useState(false);
+  const [hasAccount, setHasAccount] = useState(true);
   const { signUp, logOut, signIn, currentUser, signInWithGoogle } = useAuth();
 
   useEffect(() => {
