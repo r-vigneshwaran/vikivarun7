@@ -171,6 +171,7 @@ td:last-child {
 .form-title {
   display: flex;
   flex-direction: column;
+  text-align: center;
 }
 .tableContainer {
   width: 80%;
@@ -298,4 +299,66 @@ textarea {
 }
 th {
   color: #fff;
+}
+
+.img-container {
+  width: 300px;
+}
+.banner-img {
+  width: 100%;
+  height: 100%;
+}
+.center-input {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.preview {
+  position: absolute;
+}
+/* .preview::after {
+  content: 'preview';
+  position: absolute;
+  width: 100px;
+  height: 100px;
+} */
+.ant-image-mask {
+  opacity: 1;
+}
+.form-label {
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  font-family: initial;
+}
+.center-row {
+  display: flex;
+  justify-content: center;
+}
+.btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  margin: 20px 0;
+}
+.white {
+  color: #fff;
+}
+.upload {
+  background: #fff;
+}
+.upload-input {
+  background: #603bbb;
+}
+.switch {
+  width: 70px;
+  height: 30px;
+  background: transparent;
+  border: 1px solid cadetblue;
+  border-radius: 4px;
+  padding: 8px;
+  background-color: #ff3b5b;
+  color: #fff;
+  cursor: pointer;
 }

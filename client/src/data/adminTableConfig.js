@@ -6,13 +6,13 @@ export const adminColumns = [
     title: 'Form Name',
     dataIndex: 'formName',
     key: 'formName',
-    sorter: (a, b) => a.name.localeCompare(b.name)
+    sorter: (a, b) => a.formName.localeCompare(b.formName)
   },
   {
     title: 'Form Created',
     dataIndex: 'createdAt',
     key: 'createdAt',
-    sorter: (a, b) => moment(a.created).unix() - moment(b.created).unix()
+    sorter: (a, b) => moment(a.createdAt).unix() - moment(b.createdAt).unix()
   },
   {
     title: 'Banner',
@@ -57,12 +57,20 @@ export const adminColumns = [
   {
     title: 'Status',
     dataIndex: 'status',
-    key: 'status'
+    key: 'status',
+    render: (tags) => (
+      <>
+        <Tag color={tags === 'active' ? 'green' : 'red'}>
+          {tags.toUpperCase()}
+        </Tag>
+      </>
+    )
   },
   {
     title: 'Validity',
     dataIndex: 'validity',
-    key: 'validity'
+    key: 'validity',
+    render: (time) => <small>{moment(time).format('DD MM YYYY HH:MMA')}</small>
   }
 ];
 
