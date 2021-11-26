@@ -44,8 +44,8 @@ export function AuthProvider({ children }) {
   };
 
   const signUp = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password).then(
-      (cred) => {
+    return createUserWithEmailAndPassword(auth, email, password)
+      .then((cred) => {
         const userDetailsRef = doc(db, cred.user.email, 'user-details');
         const document = {
           uid: cred.user.uid,
@@ -65,8 +65,10 @@ export function AuthProvider({ children }) {
           .catch((err) => {
             console.warn('error occured', err);
           });
-      }
-    );
+      })
+      .catch((err) => {
+        dispatch(setNotification(true, err.message, 'Registration Failed'));
+      });
   };
 
   const signIn = (email, password) => {
@@ -84,7 +86,9 @@ export function AuthProvider({ children }) {
           });
         });
       })
-      .catch((err) => {});
+      .catch((err) => {
+        dispatch(setNotification(true, err.message, 'Login Failed'));
+      });
   };
 
   const logOut = () => {

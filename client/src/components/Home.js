@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { dataSource, columns } from 'data/userTableConfig';
+import { columns } from 'data/userTableConfig';
+import pdfMake from 'pdfmake/build/pdfmake.js';
+import pdfFonts from 'pdfmake/build/vfs_fonts.js';
 import {
   Space,
   Row,
@@ -25,6 +27,7 @@ import { getForm, sendMail, setNotification } from 'actions';
 import { useDispatch, useSelector } from 'react-redux';
 import { mapKeyToArray } from 'utility';
 import moment from 'moment';
+import { Link } from 'react-router-dom';
 
 const { Option } = Select;
 
@@ -46,7 +49,9 @@ const Home = () => {
 
   useEffect(() => {
     if (tableData.length) {
-      const data = tableData.map((item) => ({ value: item.formName }));
+      const data = tableData
+        .map((item) => ({ value: item.formName }))
+        .filter((_, index) => index < 5);
       setOptions(data);
     }
   }, [tableData]);
@@ -73,9 +78,40 @@ const Home = () => {
   }, [dispatch, userFormDetails]);
 
   const handleClickDownload = (record) => {
-    var doc = new jsPDF('p', 'pt');
-    doc.text(20, 20, JSON.stringify(record, null, 2));
-    doc.save(`${record.formName}.pdf`);
+    pdfMake.vfs = pdfFonts.pdfMake.vfs;
+    const document = {
+      content: [{ text: 'Employees', fontStyle: 15, lineHeight: 2 }]
+    };
+    Object.keys(record).forEach((item) => {
+      if (item === 'accessibleUsers') {
+        document.content.push({
+          columns: [
+            { text: item, width: 100 },
+            { text: ':', width: 10 },
+            {
+              columns: record[item].map((item) => ({
+                text: item,
+                width: 100
+              })),
+              width: 150
+            }
+          ],
+          lineHeight: 2
+        });
+      } else if (item === 'dyanmicFormData') {
+      } else if (item === 'imageUrl') {
+      } else {
+        document.content.push({
+          columns: [
+            { text: item, width: 60 },
+            { text: ':', width: 10 },
+            { text: record[item], width: 'auto' }
+          ],
+          lineHeight: 2
+        });
+      }
+    });
+    pdfMake.createPdf(document).download();
   };
 
   useEffect(() => {
@@ -122,10 +158,13 @@ const Home = () => {
   }, []);
 
   const handleClickOpenForm = (text, record) => {
-    const today = moment().format('YYYY-MM-DD');
-    const validity = moment(record.validity).format('YYYY-MM-DD');
+    const today = moment().format('YYYY-MM-DD  HH MM');
+    const validity = moment(record.validity).format('YYYY-MM-DD HH MM');
+
     if (validity < today)
-      return dispatch(setNotification(true, 'Form Expired', 'Message'));
+      return dispatch(
+        setNotification(true, `${record.formName} Form Expired`, 'Message')
+      );
     if (record.status === 'inactive')
       return dispatch(
         setNotification(true, 'Form is not temporarily active', 'Message')
@@ -185,6 +224,7 @@ const Home = () => {
 
   function confirm(record) {
     dispatch(sendMail(currentUser.email, emailRef.current.value, record));
+    emailRef.current.value = '';
   }
 
   const onChangeFilter = (value) => {
@@ -216,9 +256,9 @@ const Home = () => {
           </div>
           <Divider plain orientation="right">
             {isAdmin && (
-              <span className="switch">
+              <Link to="/admin/dashboard" className="switch">
                 <UserSwitchOutlined /> Switch to Admin
-              </span>
+              </Link>
             )}
           </Divider>
           {isShowTable ? (

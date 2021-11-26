@@ -205,10 +205,12 @@ const CreateDynamicForm = ({ onClickBack, selectedFormData, formUid }) => {
     if (formUid) {
       finalData['imageUrl'] = selectedFormData.imageUrl;
       finalData['updatedAt'] = moment().format('DD MM YYYY');
+      finalData['createdAt'] = selectedFormData.createdAt;
     } else {
       const imageURL = await handleUploadImage(selectedFile);
       finalData['createdAt'] = moment().format('DD MM YYYY');
       finalData['imageUrl'] = imageURL;
+      finalData['updatedAt'] = moment().format('DD MM YYYY');
     }
     await uploadForms(finalData);
     dispatch(setNotification(true, 'Form Uploaded Successfully', 'Message'));

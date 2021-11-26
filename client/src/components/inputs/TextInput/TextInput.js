@@ -1,5 +1,7 @@
 import React from 'react';
-import { Form, Col } from '@themesberg/react-bootstrap';
+import { Form, Col, Input, DatePicker, InputNumber } from 'antd';
+
+const { TextArea } = Input;
 
 const FormInput = ({
   id,
@@ -10,21 +12,89 @@ const FormInput = ({
   ipIndex,
   type
 }) => {
+  const RenderBasedOnType = (type) => {
+    switch (type) {
+      case 'textarea':
+        return (
+          <Form.Item
+            label={label}
+            name={ipIndex}
+            rules={[
+              {
+                required: required,
+                message: placeholder
+              }
+            ]}
+          >
+            <TextArea autoSize={{ minRows: 2, maxRows: 6 }} />
+          </Form.Item>
+        );
+      case 'date':
+        return (
+          <Form.Item
+            label={label}
+            name={ipIndex}
+            rules={[
+              {
+                required: required,
+                message: placeholder
+              }
+            ]}
+          >
+            <DatePicker />
+          </Form.Item>
+        );
+      case 'number':
+        return (
+          <Form.Item
+            label={label}
+            name={ipIndex}
+            rules={[
+              {
+                required: required,
+                message: placeholder
+              }
+            ]}
+          >
+            <InputNumber className="w-300" type="number" placeholder="00" />
+          </Form.Item>
+        );
+      case 'email':
+        return (
+          <Form.Item
+            label={label}
+            name={ipIndex}
+            rules={[
+              {
+                type: 'email',
+                required: required,
+                message: placeholder
+              }
+            ]}
+          >
+            <Input />
+          </Form.Item>
+        );
+      default:
+        return (
+          <Form.Item
+            label={label}
+            name={ipIndex}
+            rules={[
+              {
+                required: required,
+                message: placeholder
+              }
+            ]}
+          >
+            <Input />
+          </Form.Item>
+        );
+    }
+  };
   return (
-    <Col key={id} className="mt-3">
-      <Form.Group controlId={ipIndex} className="input-group">
-        <Form.Label>{label}</Form.Label>
-        {type === 'textarea' ? (
-          <Form.Control as="textarea" value={value} required={required} />
-        ) : (
-          <Form.Control
-            type={type}
-            value={value}
-            placeholder={placeholder}
-            required={required}
-          />
-        )}
-      </Form.Group>
+    <Col key={id} className="mt-4">
+      {RenderBasedOnType(type)}
     </Col>
   );
 };

@@ -1,22 +1,25 @@
-import { Form, Col } from '@themesberg/react-bootstrap';
+import { Form, Col, Checkbox, Row } from 'antd';
 
 const FormCheckbox = ({ id, label, options, type, ipIndex }) => {
   return (
     <Col key={id} className="mt-3">
-      <Form.Group controlId={`checkbox ${ipIndex}`} className="input-group">
-        <Form.Label>{label}</Form.Label>
-        <div className="options">
-          {options.map((item, index) => (
-            <Form.Check
-              key={index}
-              inline
-              label={item}
-              value={item}
-              type={type}
-            />
-          ))}
-        </div>
-      </Form.Group>
+      <Form.Item name={ipIndex} label={label}>
+        <Checkbox.Group>
+          <Row>
+            <Col span={8}>
+              {options.map((check, index) => (
+                <Checkbox
+                  key={index}
+                  value={check}
+                  style={{ lineHeight: '32px' }}
+                >
+                  {check}
+                </Checkbox>
+              ))}
+            </Col>
+          </Row>
+        </Checkbox.Group>
+      </Form.Item>
     </Col>
   );
 };
