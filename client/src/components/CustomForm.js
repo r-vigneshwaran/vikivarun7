@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Form, Row } from '@themesberg/react-bootstrap';
+import { Form, Row } from 'antd';
 import FormInput from '../components/inputs/TextInput/TextInput';
 import FormSelect from '../components/inputs/Select/Select';
 import FormCheckbox from './inputs/Checkbox/Checkbox';
@@ -15,6 +15,7 @@ import FormMultiSelect from './inputs/Select/MultiSelect';
 const CustomForm = ({ config, handleClickBack, formName }) => {
   const dispatch = useDispatch();
   const { currentUser } = useAuth();
+  const [form] = Form.useForm();
   const FormElement = useCallback(
     ({
       element: {
@@ -55,6 +56,7 @@ const CustomForm = ({ config, handleClickBack, formName }) => {
               label={label}
               options={options}
               ipIndex={ipIndex}
+              placeholder={placeholder}
               required={required}
             />
           );
@@ -66,6 +68,7 @@ const CustomForm = ({ config, handleClickBack, formName }) => {
               options={options}
               ipIndex={ipIndex}
               required={required}
+              placeholder={placeholder}
             />
           );
         case 'checkbox':
@@ -88,28 +91,11 @@ const CustomForm = ({ config, handleClickBack, formName }) => {
     []
   );
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const data = {};
-    Object.keys(e.target.elements).forEach((item) => {
-      if (isNaN(item)) {
-        if (item.split(' ')[0] === 'checkbox') {
-          const selected = [];
-          Object.keys(e.target.elements[item]).forEach((opt) => {
-            e.target.elements[item][opt].checked &&
-              selected.push(e.target.elements[item][opt].value);
-          });
-          data[item.split(' ')[1]] = selected;
-        } else {
-          if (e.target.elements[item].type !== 'checkbox')
-            data[item] = e.target.elements[item].value;
-        }
-      }
-    });
+  const handleSubmit = async (values) => {
     const adminRef = doc(db, 'admin@admin.com', 'feedback');
     const res = await getDoc(adminRef);
     const newFinalData = {
-      ...data,
+      ...values,
       submittedUser: currentUser.email,
       date: moment().format('DD MM YYYY')
     };
@@ -120,21 +106,38 @@ const CustomForm = ({ config, handleClickBack, formName }) => {
       form[formName] = [newFinalData];
     }
     console.log(newFinalData);
-    // await setDoc(adminRef, form);
-    // dispatch(
-    //   setNotification(true, 'Feedback uploaded successfully', 'Message')
-    // );
-    // handleClickBack();
+    await setDoc(adminRef, form);
+    dispatch(
+      setNotification(true, 'Feedback uploaded successfully', 'Message')
+    );
+    handleClickBack();
   };
-
+  
   const handleReset = () => {
-    document.getElementById('dynamic-form').reset();
+    form.resetFields();
   };
-
+  const layout = {
+    labelCol: {
+      span: 10
+    },
+    wrapperCol: {
+      span: 20
+    }
+  };
   return (
     <React.Fragment>
-      <Form onSubmit={handleSubmit} id="dynamic-form">
-        <Row className="row-cols-sm-3 row-cols-md-3 row-cols-lg-4">
+      <Form
+        {...layout}
+        layout="vertical"
+        form={form}
+        onFinish={handleSubmit}
+        id="dynamic-form"
+        name="dynamic-form"
+      >
+        <Row
+          style={{ flexDirection: 'column' }}
+          className="row-cols-sm-3 row-cols-md-3 row-cols-lg-4"
+        >
           {config.map((element, index) => (
             <FormElement key={index} element={element} />
           ))}

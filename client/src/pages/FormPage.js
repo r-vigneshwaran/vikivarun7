@@ -7,13 +7,13 @@ import {
   MailTwoTone,
   FormOutlined
 } from '@ant-design/icons';
-import { formDataSource, formColumn } from 'data/submissionFormConfig';
 import axios from 'axios';
 import { setNotification } from 'actions';
-import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router';
 
 const FormPage = () => {
+  const history = useHistory();
   const doc = new jsPDF();
   const FormFeedbackData = useSelector((state) => state.FormFeedbackData);
   const dispatch = useDispatch();
@@ -64,11 +64,15 @@ const FormPage = () => {
           key: 'address'
         }
       ]);
+    } else {
+      history.push('/admin/dashboard');
     }
   }, []);
+
   const handleClickDownload = () => {
     doc.save('Test.pdf');
   };
+
   const sentEmail = async (toAddress) => {
     const data = {
       to: toAddress,
@@ -78,12 +82,14 @@ const FormPage = () => {
     const response = await axios.post('http://localhost:5000/sent-email', data);
     console.log(response);
   };
+
   function confirm() {
     dispatch(
       setNotification(true, emailRef.current.value, 'Email Sent Successfully')
     );
     sentEmail(emailRef.current.value);
   }
+
   return (
     <div className="forms">
       {FormFeedbackData && (

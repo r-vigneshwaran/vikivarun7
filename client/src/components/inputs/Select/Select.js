@@ -1,23 +1,20 @@
 import React from 'react';
-import { Form, Col } from '@themesberg/react-bootstrap';
+import { Form, Col, Select } from 'antd';
+const { Option } = Select;
 
-const FormSelect = ({ id, label, required, options, ipIndex }) => {
+const FormSelect = ({ id, label, required, options, ipIndex, placeholder }) => {
   return (
     <Col key={id} className="mt-3">
-      <Form.Group controlId={ipIndex} className="input-group">
-        <Form.Label> {label}</Form.Label>
-        <Form.Control as="select" required={required}>
-          <option value="" hidden>
-            Select One
-          </option>
+      <Form.Item name={ipIndex} label={label} rules={[{ required: required }]}>
+        <Select placeholder={placeholder} allowClear>
           {options.length > 0 &&
             options.map((value, index) => (
-              <option key={index} value={value}>
+              <Option key={index} value={value}>
                 {value}
-              </option>
+              </Option>
             ))}
-        </Form.Control>
-      </Form.Group>
+        </Select>
+      </Form.Item>
     </Col>
   );
 };
